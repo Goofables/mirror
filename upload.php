@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
+error_reporting(0);
 require "utils.php";
-//stop("Not implemented!", 501)
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,14 +51,12 @@ require "utils.php";
                     $tmp = fread($download, 1024 * 8);
                     if ($len === 0) {
                         $image_info = getimagesizefromstring($tmp);
-//                        die(print_r($image_info));
                         if ($image_info) $ext = image_type_to_extension($image_info[2]);
                         elseif (!$ext = decode_mime($_FILES["file"]["type"][$i])) break;
                     }
                     if (!$tmp) break;
                     $len += strlen($tmp);
-//        print_r($http_response_header);
-//                    if ($len > $size) stop("Something is wrong with the image :( " . $len . "/" . $size);
+//                    if ($len > $size) stop("Something is wrong with the image :( " . $len . "/" . $size); // shouldnt happen
                     if ($len > 100000000) stop("Image too big :(", 413);
                     sodium_crypto_generichash_update($b2b, $tmp);
                 }
@@ -78,22 +76,18 @@ require "utils.php";
                 } else echo "Duplicate: <a href='/" . $name . "'>" . htmlspecialchars(basename($_FILES["file"]["name"][$i])) . "</a><br>";
             } else echo "Fail: " . htmlspecialchars(basename($_FILES["file"]["name"][$i])) . "<br>";
 
-
-//                && move_uploaded_file($_FILES["file"]["tmp_name"][$i], "tmp/test.jpg"))
-//                echo "Success: " . htmlspecialchars(basename($_FILES["file"]["name"][$i])) . "<br>";
-//            else
-//                echo "Fail: " . htmlspecialchars(basename($_FILES["file"]["name"][$i])) . "<br>";
-//
     }
 
     ?>
     <br>
-    Meow.jpg:
+    File to upload to mirror:
     <form action="/upload<?php if ($album != null) echo "?album=" . $album ?>" method="post"
           enctype="multipart/form-data">
         <p><input id="file" multiple="multiple" name="file[]" type="file"/></p>
         <input type="submit" onclick="document.getElementById('loading').innerText = 'Loading'"/>
     </form>
+    <br>
+    <a href="/">URL instead</a>
     <p id="loading"></p>
 </div>
 </body>
