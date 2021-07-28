@@ -7,8 +7,10 @@ $url = $_SERVER["REQUEST_URI"];
 if (substr($url, 0, 10) === "/http%3A//" || substr($url, 0, 11) === "/https%3A//") $url = urldecode($url);
 if (!(substr($url, 0, 8) === "/http://" || substr($url, 0, 9) === "/https://")) stop("That doesnt look like a valid url!");
 $url = substr($url, 1);
+$url = str_replace("//imgur.com/", "//i.imgur.com/", $url);
 $host = explode("/", explode("//", $url)[1])[0];
 if (strpos($host, "imgur.com") !== false && strpos(substr($url, -5), ".") === false) $url .= ".jpg";
+if (strpos($host, "imgur.com") !== false && strpos($url, ".gifv") !== false) $url = str_replace(".gifv", ".mp4", $url);
 
 // login to db
 $connection = db_login();
@@ -19,7 +21,7 @@ $link = $_SERVER["REQUEST_SCHEME"] . "://" . $_SERVER["HTTP_HOST"] . "/";
 
 // is url in db?
 $redownload = false;
-$statement = $connection->prepare("SELECT checksum FROM mirror.image WHERE url = ?;");
+$statement = $connection->prepare("SELECT checksum,album FROM mirror.image WHERE url = ?;");
 $statement->bind_param("s", $url);
 $statement->execute();
 if ($result = $statement->get_result())
@@ -27,8 +29,9 @@ if ($result = $statement->get_result())
         $name = $result->fetch_assoc()["checksum"];
         if (filesize("storage/" . substr($name, 0, 1) . "/" . $name) > 0) {
             header("State: Old");
-//            header("SZ: " . filesize("storage/" . substr($name, 0, 1) . "/" . $name));
-//            header("LNK: " . "storage/" . substr($name, 0, 1) . "/" . $name);
+            header("Size: " . filesize("storage/" . substr($name, 0, 1) . "/" . $name));
+            //            header("LNK: " . "storage/" . substr($name, 0, 1) . "/" . $name);
+            header("Album: " . $result->fetch_assoc()["album"]);
             header("Location: " . $link . $name);
             stop($link . $name, 301);
         } else $redownload = true;
@@ -103,12 +106,14 @@ if (!$in_db || $redownload) {
     fwrite($new_file, $buff);
     fclose($new_file);
     if ($len > 100000)
-        gen_thumbnail($name, $ext);
+        $a = gen_thumbnail($name, $ext);
 }
 
 $link .= $name;
 // return link
 header("Location: " . $link);
+header("Album: " . $album);
+header("Size: " . $len);
 header("State: " . ($in_db ? "Alt" : "New"));
 stop($link, 301);
 
