@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require "utils.php";
-
+$password = "This is my password";
 // Parse the url
 $url = $_SERVER["REQUEST_URI"];
 if (substr($url, 0, 10) === "/http%3A//" || substr($url, 0, 11) === "/https%3A//") $url = urldecode($url);
